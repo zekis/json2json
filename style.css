@@ -1,0 +1,59 @@
+body {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+#left-pane, #right-pane {
+    flex-basis: 45%;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #ddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+th {
+    background-color: #04AA6D;
+    color: white;
+}
+
+#json-table-view, #selected-json-view, #json-permissions-view, #selected-permissions-view {
+    border: 1px solid #ccc;
+    margin-top: 20px;
+    padding: 10px;
+    overflow: auto;
+    height: 300px; /* Fixed height to manage overflowing content */
+}
+
+input[type="file"], button, input[type="text"] {
+    margin-bottom: 10px;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 5px;
+}
+
+button {
+    background-color: #04AA6D;
+    color: white;
+    padding: 7px;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}

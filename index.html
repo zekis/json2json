@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Viewer & Editor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="left-pane">
+        <input type="file" id="open-json-btn" accept=".json">
+        <input type="text" id="open-filepath" readonly>
+        <div id="json-table-view"></div>
+        <div id="json-permissions-view"></div>
+    </div>
+    <div id="right-pane">
+        <button id="save-json-btn">Save JSON</button>
+        <input type="text" id="save-filepath" readonly>
+        <div id="selected-json-view"></div>
+        <div id="selected-permissions-view"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
