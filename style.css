@@ -5,8 +5,9 @@ body {
     font-family: Arial, sans-serif;
 }
 
-#left-pane, #right-pane {
+#left-pane {
     flex-basis: 45%;
+    max-width: 50%;
 }
 
 table {

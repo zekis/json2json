@@ -43,9 +43,14 @@ function displayJSONTable(containerId, data, includeCopy) {
     const tbody = document.createElement("tbody");
     const headerRow = document.createElement("tr");
 
-    const th = document.createElement("th");
-    th.textContent = 'Field Details';
-    headerRow.appendChild(th);
+    // Create header row based on keys from the first item
+    if (data.length > 0) {
+        Object.keys(data[0]).forEach(key => {
+            const th = document.createElement("th");
+            th.textContent = key;
+            headerRow.appendChild(th);
+        });
+    }
 
     if (includeCopy) {
         const copyTh = document.createElement("th");
@@ -56,14 +61,11 @@ function displayJSONTable(containerId, data, includeCopy) {
     
     data.forEach(item => {
         const row = document.createElement("tr");
-        const td = document.createElement("td");
-
-        // Combines all key-value pairs into a single string
-        td.innerHTML = Object.entries(item).map(([key, value]) => 
-            `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
-        ).join('<br>');
-
-        row.appendChild(td);
+        Object.entries(item).forEach(([key, value]) => {
+            const td = document.createElement("td");
+            td.textContent = typeof value === 'object' ? JSON.stringify(value) : value;
+            row.appendChild(td);
+        });
 
         if (includeCopy) {
             const copyTd = document.createElement("td");
@@ -80,6 +82,7 @@ function displayJSONTable(containerId, data, includeCopy) {
     table.appendChild(thead);
     table.appendChild(tbody);
     container.appendChild(table);
+}
 }
 
 let selectedData = {
