@@ -33,7 +33,7 @@ document.getElementById("save-json-btn").addEventListener("click", function() {
 
 function displayJSONTable(containerId, data, includeCopy) {
     const container = document.getElementById(containerId);
-    container.innerHTML = ""; // Clear existing content
+    container.innerHTML = "";
     if (!data || !data.length) {
         container.textContent = "No data available.";
         return;
@@ -43,28 +43,27 @@ function displayJSONTable(containerId, data, includeCopy) {
     const tbody = document.createElement("tbody");
     const headerRow = document.createElement("tr");
 
-    const th = document.createElement("th");
-    th.textContent = 'Field Details';
-    headerRow.appendChild(th);
+    const uniqueKeys = [...new Set(data.flatMap(Object.keys))];
 
+    // If includeCopy is true, add 'Action' as the first header
     if (includeCopy) {
         const copyTh = document.createElement("th");
         copyTh.textContent = "Action";
         headerRow.appendChild(copyTh);
     }
+
+    uniqueKeys.forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = key;
+        headerRow.appendChild(th);
+    });
+
     thead.appendChild(headerRow);
     
     data.forEach(item => {
         const row = document.createElement("tr");
-        const td = document.createElement("td");
 
-        // Combines all key-value pairs into a single string
-        td.innerHTML = Object.entries(item).map(([key, value]) => 
-            `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
-        ).join('<br>');
-
-        row.appendChild(td);
-
+        // If includeCopy is true, add the 'Copy' button as the first cell in the row
         if (includeCopy) {
             const copyTd = document.createElement("td");
             const copyBtn = document.createElement("button");
@@ -75,12 +74,21 @@ function displayJSONTable(containerId, data, includeCopy) {
             copyTd.appendChild(copyBtn);
             row.appendChild(copyTd);
         }
+
+        uniqueKeys.forEach(key => {
+            const td = document.createElement("td");
+            td.textContent = item[key] ? (typeof item[key] === 'object' ? JSON.stringify(item[key]) : item[key]) : '';
+            row.appendChild(td);
+        });
+
         tbody.appendChild(row);
     });
     table.appendChild(thead);
     table.appendChild(tbody);
     container.appendChild(table);
 }
+
+
 
 let selectedData = {
     fields: [],

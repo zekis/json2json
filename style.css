@@ -5,19 +5,23 @@ body {
     font-family: Arial, sans-serif;
 }
 
-#left-pane, #right-pane {
+#left-pane {
     flex-basis: 45%;
+    max-width: 50%;
 }
 
 table {
     border-collapse: collapse;
     width: 100%;
+    table-layout: auto; /* Add this line */
 }
 
 td, th {
     border: 1px solid #ddd;
     text-align: left;
     padding: 8px;
+    overflow: hidden; /* Add this line */
+    text-overflow: ellipsis; /* Add this line */
 }
 
 tr:nth-child(even) {
