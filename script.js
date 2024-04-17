@@ -99,8 +99,13 @@ function displayEditableJSONTable(containerId, data) {
         return;
     }
 
-    // Get all unique keys from the data, with 'Action', 'fieldname', and 'fieldtype' first
-    const allKeys = ['Action', 'fieldname', 'fieldtype', ...new Set(data.flatMap(Object.keys).filter(key => !['Action', 'fieldname', 'fieldtype'].includes(key)))];
+    // Get all unique keys from the data, with 'Action' first, excluding 'fieldname' and 'fieldtype' for permissions
+    let allKeys;
+    if (containerId.includes("permissions")) {
+        allKeys = ['Action', ...new Set(data.flatMap(Object.keys).filter(key => !['Action', 'fieldname', 'fieldtype'].includes(key)))];
+    } else {
+        allKeys = ['Action', 'fieldname', 'fieldtype', ...new Set(data.flatMap(Object.keys).filter(key => !['Action', 'fieldname', 'fieldtype'].includes(key)))];
+    }
 
     const table = document.createElement("table");
     const thead = document.createElement("thead");
