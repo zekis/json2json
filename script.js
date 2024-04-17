@@ -19,6 +19,8 @@ document.getElementById("open-json-btn").addEventListener("change", function(eve
     reader.readAsText(file);
 });
 
+
+
 document.getElementById("save-json-btn").addEventListener("click", function() {
     const filepath = "exported.json"; 
     const selectedFields = collectSelectedJSON();
@@ -88,6 +90,61 @@ function displayJSONTable(containerId, data, includeCopy) {
     container.appendChild(table);
 }
 
+function displayEditableJSONTable(containerId, data) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    if (!data || !data.length) {
+        container.textContent = "No data available.";
+        return;
+    }
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+    const headerRow = document.createElement("tr");
+
+    const uniqueKeys = [...new Set(data.flatMap(Object.keys))];
+
+    // Add 'Delete' as the first header
+    const deleteTh = document.createElement("th");
+    deleteTh.textContent = "Action";
+    headerRow.appendChild(deleteTh);
+
+    uniqueKeys.forEach(key => {
+        const th = document.createElement("th");
+        th.textContent = key;
+        headerRow.appendChild(th);
+    });
+
+    thead.appendChild(headerRow);
+    
+    data.forEach((item, index) => {
+        const row = document.createElement("tr");
+
+        // Add the 'Delete' button as the first cell in the row
+        const deleteTd = document.createElement("td");
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = function() {
+            data.splice(index, 1); // Remove the item
+            displayEditableJSONTable(containerId, data); // Redraw the table
+        };
+        deleteTd.appendChild(deleteBtn);
+        row.appendChild(deleteTd);
+
+        uniqueKeys.forEach(key => {
+            const td = document.createElement("td");
+            td.textContent = item[key] ? (typeof item[key] === 'object' ? JSON.stringify(item[key]) : item[key]) : '';
+            td.contentEditable = "true"; // Make the field editable
+            row.appendChild(td);
+        });
+
+        tbody.appendChild(row);
+    });
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    container.appendChild(table);
+}
+
 
 
 let selectedData = {
@@ -101,8 +158,8 @@ function copyToRightPane(data, type) {
 }
 
 function refreshRightPane() {
-    displayJSONTable('selected-json-view', selectedData.fields, false);
-    displayJSONTable('selected-permissions-view', selectedData.permissions, false);
+    displayEditableJSONTable('selected-json-view', selectedData.fields);
+    displayEditableJSONTable('selected-permissions-view', selectedData.permissions);
 }
 
 function collectSelectedJSON() {

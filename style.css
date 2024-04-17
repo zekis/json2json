@@ -6,8 +6,13 @@ body {
 }
 
 #left-pane {
-    flex-basis: 45%;
-    max-width: 50%;
+    flex-basis: 30%;
+    max-width: 29%;
+}
+
+#right-pane {
+    flex-basis: 70%;
+    max-width: 70%;
 }
 
 table {
@@ -46,7 +51,7 @@ input[type="file"], button, input[type="text"] {
 }
 
 input[type="text"] {
-    width: 100%;
+    width: 70%;
     padding: 5px;
 }
 
@@ -59,5 +64,17 @@ button {
 }
 
 button:hover {
+    background-color: #45a049;
+}
+
+.custom-file-upload {
+    background-color: #04AA6D;
+    color: white;
+    padding: 7px;
+    border: none;
+    cursor: pointer;
+}
+
+.custom-file-upload:hover {
     background-color: #45a049;
 }
