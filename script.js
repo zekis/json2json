@@ -10,7 +10,7 @@ document.getElementById("open-json-btn").addEventListener("change", function(eve
         try {
             const json = JSON.parse(content);
             displayJSONTable('json-table-view', json.fields, true); // JSON fields table
-            displayJSONTable('json-permissions-view', json.permissions, false); // JSON permissions table
+            displayJSONTable('json-permissions-view', json.permissions, true); // JSON permissions table
         } catch (error) {
             console.error("Error parsing JSON", error);
             alert("File content is not valid JSON.");
@@ -93,25 +93,24 @@ function displayJSONTable(containerId, data, includeCopy) {
 function displayEditableJSONTable(containerId, data) {
     const container = document.getElementById(containerId);
     container.innerHTML = "";
+
     if (!data || !data.length) {
         container.textContent = "No data available.";
         return;
     }
+
+    // Get all unique keys from the data, with 'Action', 'fieldname', and 'fieldtype' first
+    const allKeys = ['Action', 'fieldname', 'fieldtype', ...new Set(data.flatMap(Object.keys).filter(key => !['Action', 'fieldname', 'fieldtype'].includes(key)))];
+
     const table = document.createElement("table");
     const thead = document.createElement("thead");
     const tbody = document.createElement("tbody");
     const headerRow = document.createElement("tr");
 
-    const uniqueKeys = [...new Set(data.flatMap(Object.keys))];
-
-    // Add 'Delete' as the first header
-    const deleteTh = document.createElement("th");
-    deleteTh.textContent = "Action";
-    headerRow.appendChild(deleteTh);
-
-    uniqueKeys.forEach(key => {
+    // Add headers
+    allKeys.forEach(text => {
         const th = document.createElement("th");
-        th.textContent = key;
+        th.textContent = text;
         headerRow.appendChild(th);
     });
 
@@ -120,30 +119,49 @@ function displayEditableJSONTable(containerId, data) {
     data.forEach((item, index) => {
         const row = document.createElement("tr");
 
-        // Add the 'Delete' button as the first cell in the row
-        const deleteTd = document.createElement("td");
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.onclick = function() {
-            data.splice(index, 1); // Remove the item
-            displayEditableJSONTable(containerId, data); // Redraw the table
-        };
-        deleteTd.appendChild(deleteBtn);
-        row.appendChild(deleteTd);
-
-        uniqueKeys.forEach(key => {
+        // Add cells for each key
+        allKeys.forEach(key => {
             const td = document.createElement("td");
-            td.textContent = item[key] ? (typeof item[key] === 'object' ? JSON.stringify(item[key]) : item[key]) : '';
-            td.contentEditable = "true"; // Make the field editable
+            if (key === 'Action') {
+                const deleteBtn = document.createElement("button");
+                deleteBtn.textContent = "Delete";
+                deleteBtn.onclick = function() {
+                    data.splice(index, 1);
+                    displayEditableJSONTable(containerId, data);
+                };
+                td.appendChild(deleteBtn);
+            } else {
+                td.textContent = item[key] ? (typeof item[key] === 'object' ? JSON.stringify(item[key]) : item[key]) : '';
+                td.contentEditable = "true";
+                td.onblur = function() {
+                    // Update the original data when the user finishes editing
+                    if (key in item && typeof item[key] === 'object') {
+                        // If the original value was an object, try to parse the new value as JSON
+                        try {
+                            item[key] = JSON.parse(td.textContent);
+                        } catch (error) {
+                            console.error("Error parsing JSON", error);
+                            alert("Invalid JSON format.");
+                        }
+                    } else {
+                        // If the original value was not an object, just save the new value as a string
+                        item[key] = td.textContent;
+                    }
+                };
+            }
             row.appendChild(td);
         });
 
         tbody.appendChild(row);
     });
+
     table.appendChild(thead);
     table.appendChild(tbody);
     container.appendChild(table);
 }
+
+
+
 
 
 
@@ -153,9 +171,33 @@ let selectedData = {
 };
 
 function copyToRightPane(data, type) {
-    selectedData[type].push(data);
+    // Get all unique keys from the existing data and new data
+    const allKeys = [...new Set([...selectedData[type].flatMap(item => Object.keys(item)), ...Object.keys(data)])];
+
+    // Create a copy of the data with all keys
+    let dataWithAllKeys = {};
+
+    // Add 'Action', 'fieldname', and 'fieldtype' keys to the front
+    ['Action', 'fieldname', 'fieldtype'].forEach(key => {
+        if(key in data) {
+            dataWithAllKeys[key] = data[key];
+        }
+    });
+
+    // Add the rest of the keys
+    allKeys.forEach(key => {
+        if (!(key in dataWithAllKeys)) {
+            dataWithAllKeys[key] = data[key] || null;
+        }
+    });
+
+    selectedData[type].push(dataWithAllKeys);
     refreshRightPane();
 }
+
+
+
+
 
 function refreshRightPane() {
     displayEditableJSONTable('selected-json-view', selectedData.fields);
