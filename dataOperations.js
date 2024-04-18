@@ -23,12 +23,24 @@ function copyToRightPane(data, type) {
     refreshRightPane();
 }
 
+function getValueFromSelectedData(key, type) {
+    for (let i = 0; i < selectedData[type].length; i++) {
+        if (selectedData[type][i][key] !== undefined) {
+            return selectedData[type][i][key];
+        }
+    }
+    return null;
+}
 
 
 function refreshRightPane() {
+   
     displayEditablePropertiesTable('selected-doctype-view', selectedData.properties);
     displayEditableJSONTable('selected-json-view', selectedData.fields);
     displayEditableJSONTable('selected-permissions-view', selectedData.permissions);
+
+    let module = getValueFromSelectedData('module', 'properties');
+    document.getElementById("module").value = module;
 }
 
 

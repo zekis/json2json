@@ -51,7 +51,7 @@ input[type="file"], button, input[type="text"] {
 }
 
 input[type="text"] {
-    width: 70%;
+    width: 30%;
     padding: 5px;
 }
 
