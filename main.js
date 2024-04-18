@@ -81,7 +81,9 @@ document.getElementById("save-json-btn").addEventListener("click", function() {
 
 document.getElementById("save-python-btn").addEventListener("click", function() {
     const filepath = document.getElementById("save-docname").value + ".py"; 
-    let pyContent = createPythonTemplate(document.getElementById("save-docname").value);
+    let api = document.getElementById("module").value;
+    let listoffields = selectedData.fields;
+    let pyContent = createPythonTemplate(document.getElementById("save-docname").value, api, listoffields);
 
     let pyBlob = new Blob([pyContent], {type: "text/plain"});
     let pyUrl = URL.createObjectURL(pyBlob);
@@ -96,6 +98,7 @@ document.getElementById("save-python-btn").addEventListener("click", function() 
 
 document.getElementById("save-js-btn").addEventListener("click", function() {
     const filepath = document.getElementById("save-docname").value + ".js"; 
+    let api = document.getElementById("api-module").value;
     let jsContent = createJSTemplate(document.getElementById("save-docname").value);
 
     let jsBlob = new Blob([jsContent], {type: "text/plain"});
@@ -109,38 +112,4 @@ document.getElementById("save-js-btn").addEventListener("click", function() {
 });
 
 
-// Create python template
-function createPythonTemplate(docName) {
-    // Convert the document name to the appropriate format
-    let className = docName.split('_')
-                           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                           .join('');
-    
-    let pyContent = `# Copyright (c) 2024, SG Controls and contributors
-    # For license information, please see license.txt
 
-    # import frappe
-    from frappe.model.document import Document
-
-    class ${className}(Document):
-        pass`; 
-    return pyContent;
-}
-
-// Create JavaScript template
-function createJSTemplate(docName) {
-    // Convert the document name to the appropriate format
-    let className = docName.split('_')
-                           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                           .join('');
-    
-    let jsContent = `// Copyright (c) 2024, SG Controls and contributors
-// For license information, please see license.txt
-
-frappe.ui.form.on('${className}', {
-    doc_type: function(frm) {
-        console.log(frm.doc.doc_type);	
-    }
-});`; 
-    return jsContent;
-}
