@@ -38,7 +38,7 @@ th {
     color: white;
 }
 
-#json-table-view, #selected-json-view, #json-permissions-view, #selected-permissions-view {
+#json-table-view, #json-doctype-view,#selected-doctype-view, #selected-json-view, #json-permissions-view, #selected-permissions-view {
     border: 1px solid #ccc;
     margin-top: 20px;
     padding: 10px;

@@ -9,7 +9,14 @@ document.getElementById("open-json-btn").addEventListener("change", function(eve
         document.getElementById("open-filepath").value = file.name;
         try {
             const json = JSON.parse(content);
-            displayJSONTable('json-table-view', json.fields, true); // JSON fields table
+            const {fields, permissions, ...restOfJson} = json; // Destructure JSON to separate fields and permissions
+
+            const objArray = Object.keys(restOfJson).map(key => ({[key]: restOfJson[key]}));
+            displayDoctypeProperties('json-doctype-view', objArray);
+            console.log(objArray)
+
+            //displayDoctypeProperties('json-doctype-view', [restOfJson], true); // Pass the rest of the JSON as an array
+            displayJSONTable('json-table-view', json.fields, true); // Pass the rest of the JSON as an array
             displayJSONTable('json-permissions-view', json.permissions, true); // JSON permissions table
         } catch (error) {
             console.error("Error parsing JSON", error);
@@ -18,6 +25,7 @@ document.getElementById("open-json-btn").addEventListener("change", function(eve
     };
     reader.readAsText(file);
 });
+
 
 
 
@@ -32,6 +40,46 @@ document.getElementById("save-json-btn").addEventListener("click", function() {
     a.download = filepath;
     a.click();
 });
+
+function displayDoctypeProperties(containerId, data){
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+    if(!data || !data.length){
+        container.textContent = "No data available.";
+        return;
+    }
+    const table = document.createElement("table");
+    const tbody = document.createElement("tbody");
+
+    data.forEach(item => {
+        console.log(item)
+        const row = document.createElement("tr");
+        const actionCell = document.createElement("td");
+        const keyCell = document.createElement("td");
+        const valueCell = document.createElement("td");
+
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "Copy";
+        copyBtn.onclick = function() {
+            copyToRightPane(item, 'properties');
+        };
+        actionCell.appendChild(copyBtn);
+
+        keyCell.textContent = Object.keys(item)[0]; // assuming each item has only one key-value pair
+        valueCell.textContent = item[Object.keys(item)[0]]; // getting the value of the key
+
+        row.appendChild(actionCell);
+        row.appendChild(keyCell);
+        row.appendChild(valueCell);
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+    container.appendChild(table);
+}
+
+
+
 
 function displayJSONTable(containerId, data, includeCopy) {
     const container = document.getElementById(containerId);
@@ -70,9 +118,15 @@ function displayJSONTable(containerId, data, includeCopy) {
             const copyTd = document.createElement("td");
             const copyBtn = document.createElement("button");
             copyBtn.textContent = "Copy";
+            // copyBtn.onclick = function() {
+            //     copyToRightPane(item, containerId.includes("permissions") ? 'permissions' : 'fields');
+            // };
+
             copyBtn.onclick = function() {
-                copyToRightPane(item, containerId.includes("permissions") ? 'permissions' : 'fields');
+                copyToRightPane(item, containerId.includes("doctype") ? 'doctype' : containerId.includes("permissions") ? 'permissions' : 'fields');
             };
+            
+            
             copyTd.appendChild(copyBtn);
             row.appendChild(copyTd);
         }
@@ -165,46 +219,109 @@ function displayEditableJSONTable(containerId, data) {
     container.appendChild(table);
 }
 
+function displayEditablePropertiesTable(containerId, data) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
 
+    if (!data || !data.length) {
+        container.textContent = "No data available.";
+        return;
+    }
 
+    // Convert the doctype properties into an array of objects
+    const dataArray = Object.keys(data).map(key => ({[key]: data[key]}));
 
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    // Create header row
+    const headerRow = document.createElement("tr");
+    const actionTh = document.createElement("th");
+    const propertyTh = document.createElement("th");
+    actionTh.textContent = "Action";
+    propertyTh.textContent = "Property";
+    headerRow.appendChild(actionTh);
+    headerRow.appendChild(propertyTh);
+    thead.appendChild(headerRow);
+
+    // Create data rows
+    dataArray.forEach((item, index) => {
+        const row = document.createElement("tr");
+
+        const actionTd = document.createElement("td");
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.onclick = function() {
+            delete data[Object.keys(item)[0]]; // delete the property from the original data
+            displayEditablePropertiesTable(containerId, data); // refresh the table
+        };
+        actionTd.appendChild(deleteBtn);
+        row.appendChild(actionTd);
+
+        const propertyTd = document.createElement("td");
+        propertyTd.textContent = JSON.stringify(item);
+        propertyTd.contentEditable = "true";
+        propertyTd.onblur = function() {
+            try {
+                const newItem = JSON.parse(propertyTd.textContent);
+                const newKey = Object.keys(newItem)[0];
+                if (newKey !== Object.keys(item)[0]) {
+                    delete data[Object.keys(item)[0]]; // delete the old property
+                }
+                data[newKey] = newItem[newKey]; // add the new property
+            } catch (error) {
+                console.error("Error parsing JSON", error);
+                alert("Invalid JSON format.");
+            }
+        };
+        row.appendChild(propertyTd);
+
+        tbody.appendChild(row);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    container.appendChild(table);
+}
 
 
 let selectedData = {
+    properties: [],
     fields: [],
     permissions: []
 };
 
-function copyToRightPane(data, type) {
-    // Get all unique keys from the existing data and new data
-    const allKeys = [...new Set([...selectedData[type].flatMap(item => Object.keys(item)), ...Object.keys(data)])];
 
-    // Create a copy of the data with all keys
+
+function copyToRightPane(data, type) {
     let dataWithAllKeys = {};
 
-    // Add 'Action', 'fieldname', and 'fieldtype' keys to the front
-    ['Action', 'fieldname', 'fieldtype'].forEach(key => {
-        if(key in data) {
-            dataWithAllKeys[key] = data[key];
-        }
-    });
+    if (type === 'properties2') {
+        // If the type is 'properties', data is an object, not an array
+        // Merge the new property into the existing properties
+        selectedData[type] = {...selectedData[type], ...data};
+    
+    } else {
+        // If the type is not 'properties', data is an array
+        let allKeys = [...new Set([...selectedData[type].flatMap(item => Object.keys(item)), ...Object.keys(data)])];
 
-    // Add the rest of the keys
-    allKeys.forEach(key => {
-        if (!(key in dataWithAllKeys)) {
-            dataWithAllKeys[key] = data[key] || null;
-        }
-    });
+        // Create a copy of the data with all keys
+        allKeys.forEach(key => {
+            if (key in data) {
+                dataWithAllKeys[key] = data[key];
+            }
+        });
 
-    selectedData[type].push(dataWithAllKeys);
+        selectedData[type].push(dataWithAllKeys);
+    }
+
     refreshRightPane();
 }
 
 
-
-
-
 function refreshRightPane() {
+    displayEditablePropertiesTable('selected-doctype-view', selectedData.properties);
     displayEditableJSONTable('selected-json-view', selectedData.fields);
     displayEditableJSONTable('selected-permissions-view', selectedData.permissions);
 }
