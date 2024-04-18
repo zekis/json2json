@@ -1,49 +1,3 @@
-document.getElementById("open-json-btn").addEventListener("change", function(event) {
-    const file = event.target.files[0];
-    if (!file) {
-        return;
-    }
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const content = e.target.result;
-        document.getElementById("open-filepath").value = file.name;
-        try {
-            const json = JSON.parse(content);
-            const { fields, permissions, field_order, ...restOfJson } = json; // Destructure JSON to separate fields, permissions and field_order
-
-            const objArray = Object.keys(restOfJson).map(key => ({[key]: restOfJson[key]}));
-            displayDoctypeProperties('json-doctype-view', objArray);
-            console.log(objArray);
-            displayJSONTable('json-table-view', json.fields, true); // Pass the rest of the JSON as an array
-            displayJSONTable('json-permissions-view', json.permissions, true); // JSON permissions table
-        } catch (error) {
-            console.error("Error parsing JSON", error);
-            alert("File content is not valid JSON.");
-        }
-    };
-    reader.readAsText(file);
-});
-
-
-
-document.getElementById("save-json-btn").addEventListener("click", function() {
-    const filepath = "exported.json"; 
-    const selectedProperties = collectSelectedProperties();
-    const selectedFields = collectSelectedJSON();
-    const selectedPermissions = collectSelectedPermissions();
-
-    const fieldOrder = selectedFields.map(field => field.fieldname);
-    const exportObject = {...selectedProperties, field_order: fieldOrder, fields: selectedFields, permissions: selectedPermissions};
-
-    //const exportObject = {...selectedProperties, fields: selectedFields, permissions: selectedPermissions};
-    const blob = new Blob([JSON.stringify(exportObject, null, 2)], {type: "application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filepath;
-    a.click();
-});
-
 function displayDoctypeProperties(containerId, data){
     const container = document.getElementById(containerId);
     container.innerHTML = "";
@@ -187,6 +141,7 @@ function displayEditableJSONTable(containerId, data) {
             if (key === 'Action') {
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "Delete";
+                deleteBtn.classList.add("delete-btn");
                 deleteBtn.onclick = function() {
                     data.splice(index, 1);
                     displayEditableJSONTable(containerId, data);
@@ -251,6 +206,7 @@ function displayEditablePropertiesTable(containerId, data) {
             if (header === 'Action') {
                 const deleteBtn = document.createElement("button");
                 deleteBtn.textContent = "Delete";
+                deleteBtn.classList.add("delete-btn");
                 deleteBtn.onclick = function() {
                     data.splice(index, 1);
                     displayEditablePropertiesTable(containerId, data);
@@ -274,58 +230,4 @@ function displayEditablePropertiesTable(containerId, data) {
     table.appendChild(thead);
     table.appendChild(tbody);
     container.appendChild(table);
-}
-
-
-
-let selectedData = {
-    properties: [],
-    fields: [],
-    permissions: []
-};
-
-
-function copyToRightPane(data, type) {
-    if (type === 'properties') {
-        // If data is an object, convert it to an array of objects first
-        const dataArray = Object.keys(data).map(key => ({[key]: data[key]}));
-        selectedData[type] = [...selectedData[type], ...dataArray];
-    } else {
-        let dataWithAllKeys = {};
-        let allKeys = [...new Set([...selectedData[type].flatMap(item => Object.keys(item)), ...Object.keys(data)])];
-        allKeys.forEach(key => {
-            if (key in data) {
-                dataWithAllKeys[key] = data[key];
-            }
-        });
-        selectedData[type].push(dataWithAllKeys);
-    }
-    refreshRightPane();
-}
-
-
-
-function refreshRightPane() {
-    displayEditablePropertiesTable('selected-doctype-view', selectedData.properties);
-    displayEditableJSONTable('selected-json-view', selectedData.fields);
-    displayEditableJSONTable('selected-permissions-view', selectedData.permissions);
-}
-
-
-function collectSelectedProperties() {
-    let propertiesObject = {};
-    selectedData.properties.forEach(property => {
-        const key = Object.keys(property)[0];
-        propertiesObject[key] = property[key];
-    });
-    return propertiesObject;
-}
-
-
-function collectSelectedJSON() {
-    return selectedData.fields;
-}
-
-function collectSelectedPermissions() {
-    return selectedData.permissions;
 }
