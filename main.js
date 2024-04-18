@@ -117,13 +117,13 @@ function createPythonTemplate(docName) {
                            .join('');
     
     let pyContent = `# Copyright (c) 2024, SG Controls and contributors
-    # For license information, please see license.txt
+# For license information, please see license.txt
 
-    # import frappe
-    from frappe.model.document import Document
+# import frappe
+from frappe.model.document import Document
 
-    class ${className}(Document):
-        pass`; 
+class ${className}(Document):
+    pass`; 
     return pyContent;
 }
 
